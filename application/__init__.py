@@ -8,7 +8,7 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from itsdangerous import URLSafeTimedSerializer
 
-from config import DevelopmentConfig as Config
+from config import ProductionConfig as Config
 
 
 db = SQLAlchemy()
