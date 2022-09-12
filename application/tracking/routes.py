@@ -16,9 +16,9 @@ tracking_bp = Blueprint('tracking_bp', __name__, template_folder='templates',
 @tracking_bp.route('/stock', methods=['GET', 'POST'])
 @login_required
 def stock():
-    all_products = Product.query.all()  # всі продукти з бази - для пошуку
-    products = sort_the_stock(current_user)  # відсортовані продукти юзера
-    trash = Trash.query.filter_by(user_id=current_user.id).all()  # викинуті юзером продукти
+    all_products = Product.query.all()
+    products = sort_the_stock(current_user)
+    trash = Trash.query.filter_by(user_id=current_user.id).all()
     trash_sum = sum([p.price for p in trash]) if trash else 0
 
     form = StockForm()
@@ -33,16 +33,17 @@ def stock():
                           price=form.price.data)
             db.session.add(entry)
             db.session.commit()
-            products = sort_the_stock(current_user)
             flash('Продукт додано', category='success')
         except Exception as e:
             flash('Наразі можна додати тільки продукти, які є в нашій базі.')
             print(e)
+        return redirect(url_for('tracking_bp.stock'))
     if use_product_form.validate_on_submit() and use_product_form.submit.data:
         used: Stock = Stock.query.get(use_product_form.stock.data)
         quantity = use_product_form.quantity.data
         success = use_from_stock(used, quantity)
         flash('Продукт використано') if success else flash('Нема стільки продукту')
+        return redirect(url_for('tracking_bp.stock'))
     return render_template('stock.html', form=form, products=products, title='Мої продукти',
                            all_products=all_products, trash=trash_sum, use_product_form=use_product_form)
 
@@ -87,9 +88,7 @@ def shopping_list():
         db.session.add(shop_item)
         db.session.commit()
         flash('Новий продукт у списку покупок')
-        shop_list = ShoppingList.query.filter_by(user_id=current_user.id).all()
-        return render_template('shopping_list.html', form=form, all_products=all_products,
-                               shop_list=shop_list, modal_form=modal_form)
+        return redirect(url_for('tracking_bp.shopping_list'))
     if modal_form.validate_on_submit() and modal_form.add.data:
         product_id = Product.query.filter_by(name=modal_form.name.data).first().id
         entry = Stock(user_id=current_user.id, product_id=product_id,
@@ -101,9 +100,7 @@ def shopping_list():
         db.session.delete(shop_item)
         db.session.commit()
         flash("Продукт куплено та додано у ваші продукти!")
-        shop_list = ShoppingList.query.filter_by(user_id=current_user.id).all()
-        return render_template('shopping_list.html', form=form, all_products=all_products,
-                               shop_list=shop_list, modal_form=modal_form)
+        return redirect(url_for('tracking_bp.shopping_list'))
     return render_template('shopping_list.html', form=form, all_products=all_products,
                            shop_list=shop_list, modal_form=modal_form)
 
@@ -197,6 +194,8 @@ def meal():
 
         session['products'] = {}
         session['results'] = {'weight': 0, 'kcal': 0, 'proteins': 0, 'fats': 0, 'carbs': 0, 'fibers': 0}
+
+        return redirect(url_for('tracking_bp.meal'))
 
     return render_template('meal.html', products_form=product_form, results=session['results'],
                            meal_form=meal_form, products=session['products'], all_products=all_products)
