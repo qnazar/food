@@ -18,6 +18,8 @@ def stock_statistics(stocks: list) -> dict:
         result['fat'] += round(product.fats * item.quantity * measure // 100, 1)
         result['carb'] += round(product.carbs * item.quantity * measure // 100, 1)
         result['fiber'] += round(product.fibers * item.quantity * measure // 100, 1)
+    for item, number in result.items():
+        result[item] = round(number, 2)
     return result
 
 
